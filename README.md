@@ -98,16 +98,9 @@
 skills/swiftcart-bi-project/
 ```
 
-它沉淀了本项目的 BI 交付流程，包括业务问题澄清、指标口径统一、看板页面取舍、GitHub 目录整理、截图/PDF 导出和交付校验。后续做类似“零售增长诊断 / 漏斗归因 / AB 实验验证”的作品集项目时，可以复用这套 skill 的流程。
+它沉淀了本项目的 BI 交付流程，包括业务问题澄清、指标口径统一、看板页面取舍、GitHub 目录整理、截图/PDF 导出和交付校验。后续做类似“零售增长诊断 / 漏斗归因 / AB 实验验证”的作品集项目时，可以复用这套 skill 的流程，如需skill请联系我lc20010418@163.com。
 
 ## 数据说明
 
-本仓库保留展示所需的聚合样例数据、SQL、HTML 看板、截图和 PDF。由于原始明细数据体量较大，且包含模拟业务日志，本仓库不建议提交以下文件：
-
-- `quickmart_event_log_mock.csv`
-- `quickmart_user_retention_mock.csv`
-- `orders.csv`
-- `order_products__prior.csv`
-- `products.csv`
-
+本仓库仅公开聚合后的 Data Mart 样例数据，不包含原始订单明细、用户行为明细或任何可还原单个用户行为路径的数据、SQL、HTML 看板、截图和 PDF。
 如需复现完整链路，可参考 `docs/项目复现指南.md`。
