@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SwiftCart 库存供给证据链</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f3f6f9;
+      --nav: #0b2a55;
+      --card: #ffffff;
+      --text-main: #1d2129;
+      --text-sub: #4e5969;
+      --blue: #165dff;
+      --red: #f53f3f;
+      --green: #00b42a;
+      --grid: #edf1f7;
+      --orange: #ff7d00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 184px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #08234a 0%, #0b2a55 100%);
+      color: #eaf2ff;
+      padding: 22px 14px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 10px;
+      color: rgba(234, 242, 255, 0.86);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: #ff6a3d;
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(255, 106, 61, 0.22);
+    }
+
+    .content {
+      min-width: 0;
+      padding: 22px 28px 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(31, 45, 61, 0.06);
+    }
+
+    .chart {
+      width: 100%;
+      height: 338px;
+    }
+
+    .chart-sm {
+      width: 100%;
+      height: 292px;
+    }
+
+    .finding-box {
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      padding: 12px 14px;
+      color: #165dff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.6;
+      display: flex;
+      gap: 10px;
+    }
+
+    .finding-box.danger {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #f53f3f;
+    }
+
+    @media (max-width: 1180px) {
+      .app-shell { grid-template-columns: 76px minmax(0, 1fr); }
+      .brand-text, .nav-label { display: none; }
+      .nav-item { justify-content: center; padding: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell { display: block; }
+      .sidebar { display: none; }
+      .content { padding: 16px; }
+      .chart, .chart-sm { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="mb-8 flex items-center gap-3 px-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff6a3d] text-white shadow-lg shadow-orange-900/20">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="brand-text">
+          <div class="text-lg font-semibold leading-tight text-white">SwiftCart</div>
+          <div class="text-xs text-blue-100/70">Growth BI</div>
+        </div>
+      </div>
+
+      <nav class="space-y-2">
+        <a class="nav-item" href="index.html"><i class="fa-solid fa-house"></i><span class="nav-label">Overview</span></a>
+        <a class="nav-item" href="channel.html"><i class="fa-solid fa-chart-pie"></i><span class="nav-label">渠道诊断</span></a>
+        <a class="nav-item" href="funnel.html"><i class="fa-solid fa-filter"></i><span class="nav-label">漏斗分析</span></a>
+        <a class="nav-item active" href="supply.html"><i class="fa-solid fa-box-open"></i><span class="nav-label">供给证据</span></a>
+        <a class="nav-item" href="experiment_action.html"><i class="fa-solid fa-flask"></i><span class="nav-label">实验&行动</span></a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight text-[#1D2129]">SwiftCart 库存供给证据链</h1>
+          <p class="mt-1 text-sm text-[#4E5969]">异常后段 -> Top20缺货 -> 城市集中 -> 客诉反馈</p>
+          <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold leading-6 text-[#F53F3F] shadow-sm">
+            🎯 供给归因目标：验证首单支付率下探是否由 Top20 爆款缺货造成，并定位问题是否集中在“信息流渠道A × 北京/杭州 × Top20商品”的高风险切片。
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="card flex items-center gap-2 px-4 py-2 text-sm text-[#4E5969]">
+            <i class="fa-regular fa-calendar text-[#165DFF]"></i>
+            <span>2026/04/01-04/30</span>
+          </div>
+          <div class="card flex items-center gap-2 px-4 py-2 text-sm text-[#4E5969]">
+            <i class="fa-solid fa-chart-pie text-[#165DFF]"></i>
+            <span>Channel: All</span>
+          </div>
+          <div class="card flex items-center gap-2 bg-red-50 px-4 py-2 text-sm">
+            <i class="fa-solid fa-triangle-exclamation text-[#F53F3F]"></i>
+            <span class="font-semibold text-[#F53F3F]">异常期 04/21-04/26</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="kpiGrid" class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"></section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1.1fr_1fr]">
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">大盘支付率 vs Top20缺货率</h2>
+          <div id="periodChart" class="chart-sm"></div>
+          <div class="finding-box mt-3">
+            <span>💡</span>
+            <span>关键发现：异常期整体支付率下降 2.90%，同时 Top20 缺货阻断率上升 5.31%，供给侧压力与支付下滑同向发生。</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">异常期城市 Top20 缺货率排名</h2>
+          <div id="cityOosChart" class="chart-sm"></div>
+          <div class="finding-box danger mt-3">
+            <span>🚨</span>
+            <span>预警提示：北京、杭州 Top20 缺货率分别达到 49.44% 与 48.22%，明显高于其他城市，是供给风险最集中的城市。</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">目标切片支付率断崖</h2>
+          <div id="triggerChart" class="chart-sm"></div>
+          <div class="finding-box danger mt-3">
+            <span>🚨</span>
+            <span>预警提示：信息流渠道A在北京/杭州的 Top20 商品支付率仅约 16%，非 Top20 仍接近 60%，缺货触发条件高度吻合。</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1.25fr]">
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">异常期缺货相关反馈率</h2>
+          <div id="feedbackChart" class="chart"></div>
+          <div class="finding-box mt-3">
+            <span>💡</span>
+            <span>关键发现：北京、杭州缺货相关反馈占比分别为 58.53% 与 53.63%，客诉侧信号进一步支持“供给短缺”而非单纯流量质量问题。</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-[#1D2129]">城市综合风险表</h2>
+            <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#F53F3F]">异常期城市横截面</span>
+          </div>
+          <div class="overflow-hidden rounded-xl border border-[#edf1f7]">
+            <table class="w-full border-collapse text-sm">
+              <thead class="bg-[#f7f9fc] text-left text-[#4E5969]">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">城市</th>
+                  <th class="px-4 py-3 font-semibold">支付率</th>
+                  <th class="px-4 py-3 font-semibold">Top20缺货率</th>
+                  <th class="px-4 py-3 font-semibold">缺货反馈率</th>
+                  <th class="px-4 py-3 font-semibold">风险等级</th>
+                </tr>
+              </thead>
+              <tbody id="riskRows" class="divide-y divide-[#edf1f7]"></tbody>
+            </table>
+          </div>
+          <div class="finding-box mt-4">
+            <span>💡</span>
+            <span>证据链结论：城市缺货率、目标切片阻断率、缺货反馈率三类证据均指向北京/杭州供给短缺，且与信息流渠道A的支付断点形成闭环。</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 gap-5 xl:grid-cols-[0.9fr_1.1fr_1fr]">
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">证据链</h2>
+          <div class="space-y-4 text-sm text-[#4E5969]">
+            <div class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#165DFF] text-xs font-bold text-white">1</span>
+              <div><b class="text-[#1D2129]">大盘异动</b><br />异常期支付率下降，问题出现在交易后段。</div>
+            </div>
+            <div class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#165DFF] text-xs font-bold text-white">2</span>
+              <div><b class="text-[#1D2129]">供给压力</b><br />Top20 爆款缺货率异常抬升，影响核心 SKU。</div>
+            </div>
+            <div class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#165DFF] text-xs font-bold text-white">3</span>
+              <div><b class="text-[#1D2129]">城市集中</b><br />北京/杭州缺货率最高，与异常触发城市一致。</div>
+            </div>
+            <div class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#165DFF] text-xs font-bold text-white">4</span>
+              <div><b class="text-[#1D2129]">客诉验证</b><br />缺货相关反馈同步升高，形成外部反馈证据。</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">目标切片明细</h2>
+          <div class="overflow-hidden rounded-xl border border-[#edf1f7]">
+            <table class="w-full border-collapse text-sm">
+              <thead class="bg-[#f7f9fc] text-left text-[#4E5969]">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">城市</th>
+                  <th class="px-4 py-3 font-semibold">商品类型</th>
+                  <th class="px-4 py-3 font-semibold">结算人数</th>
+                  <th class="px-4 py-3 font-semibold">支付人数</th>
+                  <th class="px-4 py-3 font-semibold">支付率</th>
+                  <th class="px-4 py-3 font-semibold">阻断率</th>
+                </tr>
+              </thead>
+              <tbody id="triggerRows" class="divide-y divide-[#edf1f7]"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">表达边界</h2>
+          <ul class="space-y-3 text-sm leading-6 text-[#4E5969]">
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>可以表达为：本轮异常具备较完整的“供给短缺候选解释”。</span></li>
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>不要表达为：库存是唯一根因，因为仍需仓配、补货和履约系统日志进一步验证。</span></li>
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>下一步建议：优先恢复北京/杭州 Top20 安全库存，并对信息流渠道A落地页增加缺货替代推荐。</span></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const BLUE = '#165DFF';
+    const BLUE_SOFT = '#7FB3FF';
+    const RED = '#F53F3F';
+    const GREEN = '#00B42A';
+    const ORANGE = '#FF7D00';
+    const GREY = '#86909C';
+
+    const periodData = [
+      { period: '正常期', checkout_uv: 201960, paid_uv: 136930, overall_pay_rate: 0.6780055457, top20_oos_rate: 0.3199309087 },
+      { period: '异常期', checkout_uv: 43317, paid_uv: 28115, overall_pay_rate: 0.6490523351, top20_oos_rate: 0.3730674434 }
+    ];
+
+    const cityOosData = [
+      { city: '北京', checkout_uv: 5132, overall_pay_rate: 0.6469212783, top20_oos_rate: 0.4944029851, stockout_feedback_rate: 0.5853, feedback_rate: 0.0503 },
+      { city: '杭州', checkout_uv: 5045, overall_pay_rate: 0.6200198216, top20_oos_rate: 0.4821763602, stockout_feedback_rate: 0.5363, feedback_rate: 0.0573 },
+      { city: '南京', checkout_uv: 5482, overall_pay_rate: 0.6448376505, top20_oos_rate: 0.3710575139, stockout_feedback_rate: 0.4843, feedback_rate: 0.0463 },
+      { city: '武汉', checkout_uv: 5253, overall_pay_rate: 0.6592423377, top20_oos_rate: 0.3456561922, stockout_feedback_rate: 0.4524, feedback_rate: 0.0400 },
+      { city: '上海', checkout_uv: 5251, overall_pay_rate: 0.6513045134, top20_oos_rate: 0.3409523810, stockout_feedback_rate: 0.4766, feedback_rate: 0.0448 },
+      { city: '深圳', checkout_uv: 5731, overall_pay_rate: 0.6534636189, top20_oos_rate: 0.3328000000, stockout_feedback_rate: 0.4751, feedback_rate: 0.0455 },
+      { city: '成都', checkout_uv: 5561, overall_pay_rate: 0.6532997662, top20_oos_rate: 0.3185840708, stockout_feedback_rate: 0.4659, feedback_rate: 0.0475 },
+      { city: '广州', checkout_uv: 5862, overall_pay_rate: 0.6603548277, top20_oos_rate: 0.3155258765, stockout_feedback_rate: 0.4980, feedback_rate: 0.0418 }
+    ];
+
+    const triggerData = [
+      { city: '北京', product_type: '非Top20', checkout_uv: 1663, paid_uv: 1017, checkout_to_pay_rate: 0.6115, blocked_rate: 0.3885 },
+      { city: '北京', product_type: 'Top20', checkout_uv: 187, paid_uv: 30, checkout_to_pay_rate: 0.1604, blocked_rate: 0.8396 },
+      { city: '杭州', product_type: '非Top20', checkout_uv: 1769, paid_uv: 1049, checkout_to_pay_rate: 0.5930, blocked_rate: 0.4070 },
+      { city: '杭州', product_type: 'Top20', checkout_uv: 178, paid_uv: 29, checkout_to_pay_rate: 0.1629, blocked_rate: 0.8371 }
+    ];
+
+    const pct = (v, digits = 2) => `${(v * 100).toFixed(digits)}%`;
+    const pp = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
+    const fmt = (n) => Math.round(n).toLocaleString('zh-CN');
+
+    const normal = periodData[0];
+    const anomaly = periodData[1];
+    const targetTop20 = triggerData.filter(d => d.product_type === 'Top20');
+    const targetPayRate = targetTop20.reduce((s, d) => s + d.paid_uv, 0) / targetTop20.reduce((s, d) => s + d.checkout_uv, 0);
+    const targetBlockedRate = targetTop20.reduce((s, d) => s + d.blocked_rate, 0) / targetTop20.length;
+
+    const kpis = [
+      { title: '整体支付率', value: `${pct(normal.overall_pay_rate)} → ${pct(anomaly.overall_pay_rate)}`, delta: `${pp(anomaly.overall_pay_rate - normal.overall_pay_rate)} 异常期`, color: BLUE },
+      { title: 'Top20缺货率', value: `${pct(normal.top20_oos_rate)} → ${pct(anomaly.top20_oos_rate)}`, delta: `${pp(anomaly.top20_oos_rate - normal.top20_oos_rate)} 异常期`, color: RED },
+      { title: '北京Top20缺货率', value: pct(cityOosData.find(d => d.city === '北京').top20_oos_rate), delta: '异常期城市最高', color: RED },
+      { title: '杭州Top20缺货率', value: pct(cityOosData.find(d => d.city === '杭州').top20_oos_rate), delta: '异常期城市第二', color: RED },
+      { title: '目标切片支付率', value: pct(targetPayRate), delta: `阻断率约 ${pct(targetBlockedRate)}`, color: ORANGE }
+    ];
+
+    document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+      <article class="card px-5 py-4">
+        <div class="text-sm font-medium text-[#4E5969]">${k.title}</div>
+        <div class="mt-2 text-2xl font-bold tracking-tight" style="color:${k.color}">${k.value}</div>
+        <div class="mt-2 rounded-md bg-[#f7f9fc] px-3 py-1 text-xs font-semibold text-[#4E5969]">${k.delta}</div>
+      </article>
+    `).join('');
+
+    const baseGrid = {
+      containLabel: true,
+      left: 20,
+      right: 22,
+      top: 46,
+      bottom: 24
+    };
+
+    const chartTheme = {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255,255,255,0.96)',
+        borderColor: '#E5E6EB',
+        borderWidth: 1,
+        textStyle: { color: '#1D2129' }
+      },
+      grid: baseGrid
+    };
+
+    const charts = [];
+    const makeChart = (id) => {
+      const chart = echarts.init(document.getElementById(id));
+      charts.push(chart);
+      return chart;
+    };
+
+    makeChart('periodChart').setOption({
+      ...chartTheme,
+      legend: { top: 4, itemWidth: 10, itemHeight: 10, textStyle: { color: '#4E5969' } },
+      xAxis: { type: 'category', data: periodData.map(d => d.period), axisTick: { show: false }, axisLine: { lineStyle: { color: '#E5E6EB' } } },
+      yAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { lineStyle: { color: '#EDF1F7' } } },
+      series: [
+        {
+          name: '整体支付率',
+          type: 'bar',
+          barWidth: 24,
+          data: periodData.map(d => d.overall_pay_rate),
+          itemStyle: { color: BLUE, borderRadius: [6, 6, 0, 0] },
+          label: { show: true, position: 'top', formatter: p => pct(p.value) }
+        },
+        {
+          name: 'Top20缺货率',
+          type: 'bar',
+          barWidth: 24,
+          data: periodData.map(d => d.top20_oos_rate),
+          itemStyle: { color: RED, borderRadius: [6, 6, 0, 0] },
+          label: { show: true, position: 'top', formatter: p => pct(p.value) }
+        }
+      ]
+    });
+
+    makeChart('cityOosChart').setOption({
+      ...chartTheme,
+      grid: { left: 70, right: 62, top: 24, bottom: 22, containLabel: true },
+      xAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { show: false } },
+      yAxis: {
+        type: 'category',
+        data: cityOosData.map(d => d.city).reverse(),
+        axisTick: { show: false },
+        axisLine: { show: false }
+      },
+      series: [{
+        type: 'bar',
+        barWidth: 14,
+        data: cityOosData.map(d => ({
+          value: d.top20_oos_rate,
+          itemStyle: { color: ['北京', '杭州'].includes(d.city) ? RED : BLUE }
+        })).reverse(),
+        label: {
+          show: true,
+          position: 'right',
+          formatter: p => pct(p.value),
+          color: '#4E5969',
+          fontWeight: 600
+        },
+        itemStyle: { borderRadius: [0, 7, 7, 0] }
+      }]
+    });
+
+    makeChart('triggerChart').setOption({
+      ...chartTheme,
+      legend: { top: 4, itemWidth: 10, itemHeight: 10, textStyle: { color: '#4E5969' } },
+      xAxis: { type: 'category', data: ['北京', '杭州'], axisTick: { show: false }, axisLine: { lineStyle: { color: '#E5E6EB' } } },
+      yAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { lineStyle: { color: '#EDF1F7' } } },
+      series: [
+        {
+          name: '非Top20支付率',
+          type: 'bar',
+          barWidth: 22,
+          data: ['北京', '杭州'].map(city => triggerData.find(d => d.city === city && d.product_type === '非Top20').checkout_to_pay_rate),
+          itemStyle: { color: BLUE, borderRadius: [6, 6, 0, 0] },
+          label: { show: true, position: 'top', formatter: p => pct(p.value) }
+        },
+        {
+          name: 'Top20支付率',
+          type: 'bar',
+          barWidth: 22,
+          data: ['北京', '杭州'].map(city => triggerData.find(d => d.city === city && d.product_type === 'Top20').checkout_to_pay_rate),
+          itemStyle: { color: RED, borderRadius: [6, 6, 0, 0] },
+          label: { show: true, position: 'top', formatter: p => pct(p.value) }
+        }
+      ]
+    });
+
+    makeChart('feedbackChart').setOption({
+      ...chartTheme,
+      grid: { left: 70, right: 70, top: 30, bottom: 22, containLabel: true },
+      xAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { show: false } },
+      yAxis: {
+        type: 'category',
+        data: cityOosData.map(d => d.city).reverse(),
+        axisTick: { show: false },
+        axisLine: { show: false }
+      },
+      series: [{
+        name: '缺货相关反馈率',
+        type: 'bar',
+        barWidth: 16,
+        data: cityOosData.map(d => ({
+          value: d.stockout_feedback_rate,
+          itemStyle: { color: ['北京', '杭州'].includes(d.city) ? RED : BLUE_SOFT }
+        })).reverse(),
+        itemStyle: { borderRadius: [0, 8, 8, 0] },
+        label: {
+          show: true,
+          position: 'right',
+          formatter: p => pct(p.value),
+          color: '#4E5969',
+          fontWeight: 600
+        }
+      }]
+    });
+
+    document.getElementById('riskRows').innerHTML = cityOosData.map(d => {
+      const isHigh = ['北京', '杭州'].includes(d.city);
+      const risk = isHigh ? '高' : (d.top20_oos_rate > 0.36 ? '中高' : '中');
+      return `
+        <tr class="${isHigh ? 'bg-red-50/45' : ''}">
+          <td class="px-4 py-3 font-semibold text-[#1D2129]">${d.city}</td>
+          <td class="px-4 py-3">${pct(d.overall_pay_rate)}</td>
+          <td class="px-4 py-3 font-semibold ${isHigh ? 'text-[#F53F3F]' : 'text-[#1D2129]'}">${pct(d.top20_oos_rate)}</td>
+          <td class="px-4 py-3">${pct(d.stockout_feedback_rate)}</td>
+          <td class="px-4 py-3"><span class="rounded-full ${isHigh ? 'bg-red-100 text-[#F53F3F]' : 'bg-blue-50 text-[#165DFF]'} px-2 py-1 text-xs font-bold">${risk}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('triggerRows').innerHTML = triggerData.map(d => {
+      const isTop = d.product_type === 'Top20';
+      return `
+        <tr class="${isTop ? 'bg-red-50/45' : ''}">
+          <td class="px-4 py-3 font-semibold text-[#1D2129]">${d.city}</td>
+          <td class="px-4 py-3">${d.product_type}</td>
+          <td class="px-4 py-3">${fmt(d.checkout_uv)}</td>
+          <td class="px-4 py-3">${fmt(d.paid_uv)}</td>
+          <td class="px-4 py-3 font-semibold ${isTop ? 'text-[#F53F3F]' : 'text-[#165DFF]'}">${pct(d.checkout_to_pay_rate)}</td>
+          <td class="px-4 py-3 font-semibold ${isTop ? 'text-[#F53F3F]' : 'text-[#4E5969]'}">${pct(d.blocked_rate)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    window.addEventListener('resize', () => charts.forEach(chart => chart.resize()));
+  </script>
+</body>
+</html>

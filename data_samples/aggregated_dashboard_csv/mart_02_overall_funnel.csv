@@ -1,0 +1,3 @@
+﻿period,exposure_uv,click_uv,cart_uv,checkout_uv,paid_uv,exposure_to_click_rate,click_to_cart_rate,cart_to_checkout_rate,checkout_to_paid_rate
+1. 正常期,3387818.0,1638420.0,715970.0,201960.0,136930.0,0.4836,0.437,0.2821,0.678
+2. 异常期,739601.0,347600.0,152680.0,43317.0,28115.0,0.47,0.4392,0.2837,0.6491

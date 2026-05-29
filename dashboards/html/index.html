@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SwiftCart Growth Diagnosis System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f3f6f9;
+      --nav: #0b2a55;
+      --card: #ffffff;
+      --text-main: #1d2129;
+      --text-sub: #4e5969;
+      --blue: #165dff;
+      --blue-soft: #7fb3ff;
+      --red: #f53f3f;
+      --green: #00b42a;
+      --grid: #edf1f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 184px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #08234a 0%, #0b2a55 100%);
+      color: #eaf2ff;
+      padding: 22px 14px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 10px;
+      color: rgba(234, 242, 255, 0.86);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-item.active {
+      background: #ff6a3d;
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(255, 106, 61, 0.22);
+    }
+
+    .content {
+      min-width: 0;
+      padding: 22px 28px 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(31, 45, 61, 0.06);
+    }
+
+    .chart {
+      width: 100%;
+      height: 338px;
+    }
+
+    .kpi-card {
+      min-height: 126px;
+    }
+
+    .finding-box {
+      margin-top: 14px;
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      padding: 12px 14px;
+      color: #165dff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.6;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .finding-box.danger {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #f53f3f;
+    }
+
+    @media (max-width: 1180px) {
+      .app-shell {
+        grid-template-columns: 76px minmax(0, 1fr);
+      }
+
+      .brand-text,
+      .nav-label {
+        display: none;
+      }
+
+      .nav-item {
+        justify-content: center;
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .chart {
+        height: 310px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="mb-8 flex items-center gap-3 px-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff6a3d] text-white shadow-lg shadow-orange-900/20">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="brand-text">
+          <div class="text-lg font-semibold leading-tight text-white">SwiftCart</div>
+          <div class="text-xs text-blue-100/70">Growth BI</div>
+        </div>
+      </div>
+
+      <nav class="space-y-2">
+        <a class="nav-item active" href="index.html"><i class="fa-solid fa-house"></i><span class="nav-label">Overview</span></a>
+        <a class="nav-item" href="channel.html"><i class="fa-solid fa-chart-pie"></i><span class="nav-label">渠道诊断</span></a>
+        <a class="nav-item" href="funnel.html"><i class="fa-solid fa-filter"></i><span class="nav-label">漏斗分析</span></a>
+        <a class="nav-item" href="supply.html"><i class="fa-solid fa-box-open"></i><span class="nav-label">供给证据</span></a>
+        <a class="nav-item" href="experiment_action.html"><i class="fa-solid fa-flask"></i><span class="nav-label">实验&行动</span></a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="mb-5">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#1D2129]">SwiftCart 增长诊断系统</h1>
+            <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold leading-6 text-[#F53F3F] shadow-sm">
+              🎯 核心诊断目标：大盘流量基本稳定，但在 04/21-04/26 期间首单支付率与 D1 留存率突发断崖式下跌。本看板旨在拆解转化漏斗，定位流失断点及核心责任渠道！
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="card flex items-center gap-2 px-4 py-2 text-sm text-[#4E5969]">
+              <i class="fa-regular fa-calendar text-[#165DFF]"></i>
+              <span>2026/04/01-04/30</span>
+            </div>
+            <div class="card flex items-center gap-2 px-4 py-2 text-sm text-[#4E5969]">
+              <i class="fa-solid fa-triangle-exclamation text-[#F53F3F]"></i>
+              <span class="font-medium text-[#F53F3F]">异常期 04/21-04/26</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section id="kpiGrid" class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7"></section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">每日新用户与首单支付率</h2>
+          <div id="newUserPayChart" class="chart"></div>
+          <div class="finding-box">
+            <span>💡</span>
+            <span>关键发现：异常期内流量规模未见明显缩减，问题纯粹偏向转化质量断层！</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">每日D1留存率趋势</h2>
+          <div id="retentionChart" class="chart"></div>
+          <div class="finding-box">
+            <span>💡</span>
+            <span>关键发现：D1 留存率同步回落，说明异常已从成交问题外溢，严重影响后续新用户质量！</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[1.15fr_1fr]">
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">整体转化漏斗</h2>
+          <div id="funnelChart" class="chart"></div>
+          <div class="finding-box">
+            <span>💡</span>
+            <span>关键发现：结算到支付的步进转化率收缩最明显，是本轮交易后段波动的绝对核心断点！</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">渠道后段支付率变化排名</h2>
+          <div id="channelChart" class="chart"></div>
+          <div class="finding-box danger">
+            <span>🚨</span>
+            <span>预警提示：信息流渠道 A 是本轮支付率暴跌的最主要贡献渠道，需立即下钻排查！</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="card p-5">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h2 class="text-base font-semibold text-[#1D2129]">核心指标口径表</h2>
+          <span class="text-xs font-medium text-[#86909C]">Metric Dictionary</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+            <thead>
+              <tr class="bg-[#F3F6F9] text-[#4E5969]">
+                <th class="rounded-l-lg px-4 py-3 font-semibold">指标</th>
+                <th class="px-4 py-3 font-semibold">当前值</th>
+                <th class="rounded-r-lg px-4 py-3 font-semibold">口径说明</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#EEF2F7] text-[#1D2129]">
+              <tr><td class="px-4 py-3 font-medium">新用户数</td><td class="px-4 py-3">479,680</td><td class="px-4 py-3 text-[#4E5969]">当日发生“曝光”行为的去重用户数</td></tr>
+              <tr><td class="px-4 py-3 font-medium">首单支付率</td><td class="px-4 py-3">4.85%</td><td class="px-4 py-3 text-[#4E5969]">发生首单支付的用户数 / 当日新用户数</td></tr>
+              <tr><td class="px-4 py-3 font-medium">结算-&gt;支付转化率</td><td class="px-4 py-3">67.21%</td><td class="px-4 py-3 text-[#4E5969]">支付链路去重数 / 结算链路去重数</td></tr>
+              <tr><td class="px-4 py-3 font-medium">D1留存率</td><td class="px-4 py-3">16.60%</td><td class="px-4 py-3 text-[#4E5969]">次日(D+1)发生活跃行为的用户数 / 当日新增用户数</td></tr>
+              <tr><td class="px-4 py-3 font-medium">AB首单绝对提升</td><td class="px-4 py-3 font-semibold text-[#00B42A]">+15.43%</td><td class="px-4 py-3 text-[#4E5969]">实验组首单转化率 - 对照组首单转化率，使用 ALL 全量实验口径</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const dates = [
+      "4月1日", "4月2日", "4月3日", "4月4日", "4月5日", "4月6日",
+      "4月7日", "4月8日", "4月9日", "4月10日", "4月11日", "4月12日",
+      "4月13日", "4月14日", "4月15日", "4月16日", "4月17日", "4月18日",
+      "4月19日", "4月20日", "4月21日", "4月22日", "4月23日", "4月24日",
+      "4月25日", "4月26日", "4月27日", "4月28日", "4月29日", "4月30日"
+    ];
+
+    const dailyNewUsers = [
+      15818, 16246, 16483, 15816, 15777, 16124, 15942, 15854, 16077, 16088,
+      15586, 15535, 16250, 16042, 16032, 16030, 16124, 15802, 15566, 16046,
+      16294, 16026, 15788, 16010, 15463, 15949, 16223, 16464, 16037, 16188
+    ];
+
+    const firstOrderPayRate = [
+      0.0504, 0.0522, 0.0527, 0.05, 0.0513, 0.0504, 0.0489, 0.0501, 0.0504, 0.0502,
+      0.049, 0.0491, 0.052, 0.0499, 0.0509, 0.0487, 0.0497, 0.0502, 0.0483, 0.0494,
+      0.0458, 0.0434, 0.0408, 0.0416, 0.0407, 0.0448, 0.0448, 0.05, 0.0485, 0.05
+    ];
+
+    const d1RetentionRate = [
+      0.1818, 0.1914, 0.1807, 0.1818, 0.1813, 0.1813, 0.1811, 0.1801, 0.186, 0.1839,
+      0.1802, 0.1849, 0.1839, 0.1819, 0.1882, 0.185, 0.1818, 0.182, 0.1858, 0.1816,
+      0.1022, 0.0946, 0.0957, 0.1012, 0.1013, 0.0992, 0.1734, 0.1815, 0.1842, 0.1823
+    ];
+
+    const kpis = [
+      { title: "新用户总数", value: "479,680", note: "规模整体稳定", icon: "fa-user-plus", tone: "blue" },
+      { title: "首单支付率", value: "4.85%", note: "异常明显下探", icon: "fa-credit-card", tone: "red" },
+      { title: "结算→支付转化率", value: "67.21%", note: "后段核心断点", icon: "fa-arrow-right-arrow-left", tone: "blue", strong: true },
+      { title: "首单客单价", value: "¥99.84", note: "价格侧平稳", icon: "fa-tag", tone: "gray" },
+      { title: "首单GMV", value: "¥16,474,526", note: "受转化波动影响", icon: "fa-sack-dollar", tone: "gray" },
+      { title: "D1留存率", value: "16.60%", note: "用户质量承压", icon: "fa-rotate", tone: "red" },
+      { title: "AB首单绝对提升", value: "+15.43%", note: "ALL全量口径", icon: "fa-arrow-trend-up", tone: "green", bold: true }
+    ];
+
+    const funnelData = [
+      { name: "曝光", value: 739601 },
+      { name: "点击", value: 347600 },
+      { name: "加购", value: 152680 },
+      { name: "结算", value: 43317 },
+      { name: "支付", value: 28115 }
+    ];
+
+    const channelChange = [
+      { channel: "信息流渠道A", value: -0.0785 },
+      { channel: "达人种草", value: -0.0019 },
+      { channel: "自然搜索", value: 0.0047 }
+    ];
+
+    const theme = {
+      blue: "#165DFF",
+      blueSoft: "#7FB3FF",
+      red: "#F53F3F",
+      green: "#00B42A",
+      text: "#1D2129",
+      sub: "#4E5969",
+      axis: "#86909C",
+      grid: "#EDF1F7"
+    };
+
+    function pct(value, digits = 2) {
+      return `${(value * 100).toFixed(digits)}%`;
+    }
+
+    function renderKpis() {
+      const tone = {
+        blue: "bg-blue-50 text-[#165DFF]",
+        red: "bg-red-50 text-[#F53F3F]",
+        green: "bg-green-50 text-[#00B42A]",
+        gray: "bg-slate-50 text-[#4E5969]"
+      };
+
+      const valueTone = {
+        blue: "text-[#165DFF]",
+        red: "text-[#F53F3F]",
+        green: "text-[#00B42A]",
+        gray: "text-[#1D2129]"
+      };
+
+      document.getElementById("kpiGrid").innerHTML = kpis.map((item) => `
+        <article class="card kpi-card flex min-w-0 flex-col justify-between p-4">
+          <div class="flex items-start justify-between gap-2">
+            <span class="truncate text-sm font-medium text-[#4E5969]">${item.title}</span>
+            <i class="fa-solid ${item.icon} ${valueTone[item.tone]}"></i>
+          </div>
+          <div>
+            <div class="mt-4 truncate text-2xl font-semibold leading-none ${item.strong || item.bold ? valueTone[item.tone] : "text-[#1D2129]"} ${item.bold ? "font-bold" : ""}">
+              ${item.value}
+            </div>
+            <div class="mt-4 inline-flex max-w-full justify-center rounded-md px-3 py-1 text-xs font-medium ${tone[item.tone]}">
+              ${item.note}
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    const tooltipStyle = {
+      borderWidth: 0,
+      backgroundColor: "rgba(255,255,255,0.98)",
+      textStyle: { color: theme.text },
+      extraCssText: "box-shadow:0 10px 30px rgba(31,45,61,.12);border-radius:10px;"
+    };
+
+    const anomalyMarkArea = {
+      silent: true,
+      itemStyle: { color: "rgba(245,63,63,0.12)" },
+      label: {
+        show: true,
+        color: theme.red,
+        fontWeight: 700,
+        position: "insideTop",
+        formatter: "异常期"
+      },
+      data: [[{ xAxis: "4月21日" }, { xAxis: "4月26日" }]]
+    };
+
+    function renderNewUserPayChart() {
+      const chart = echarts.init(document.getElementById("newUserPayChart"));
+      chart.setOption({
+        color: [theme.blueSoft, "#344054"],
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "cross" },
+          ...tooltipStyle,
+          formatter: (params) => {
+            const date = params[0].axisValue;
+            const users = params.find((p) => p.seriesName === "新用户数").value;
+            const rate = params.find((p) => p.seriesName === "首单支付率").value;
+            return `<b>${date}</b><br/>新用户数：${users.toLocaleString("zh-CN")}<br/>首单支付率：${pct(rate)}`;
+          }
+        },
+        legend: {
+          data: ["新用户数", "首单支付率"],
+          top: 2,
+          left: 0,
+          itemWidth: 14,
+          itemHeight: 8,
+          textStyle: { color: theme.sub }
+        },
+        grid: { left: 52, right: 56, top: 48, bottom: 36 },
+        xAxis: {
+          type: "category",
+          data: dates,
+          axisTick: { show: false },
+          axisLabel: { color: theme.axis, interval: 2 },
+          axisLine: { lineStyle: { color: "#DDE3EE" } }
+        },
+        yAxis: [
+          {
+            type: "value",
+            name: "新用户数",
+            nameTextStyle: { color: theme.sub, padding: [0, 0, 0, 12] },
+            axisLabel: {
+              color: theme.axis,
+              formatter: (v) => `${Math.round(v / 1000)}K`
+            },
+            splitLine: { lineStyle: { color: theme.grid } }
+          },
+          {
+            type: "value",
+            name: "首单支付率",
+            min: 0.035,
+            max: 0.055,
+            nameTextStyle: { color: theme.sub, padding: [0, 12, 0, 0] },
+            axisLabel: { color: theme.axis, formatter: (v) => pct(v, 0) },
+            splitLine: { show: false }
+          }
+        ],
+        series: [
+          {
+            name: "新用户数",
+            type: "bar",
+            data: dailyNewUsers,
+            barWidth: 14,
+            itemStyle: { borderRadius: [4, 4, 0, 0], color: "rgba(22,93,255,0.58)" },
+            markArea: anomalyMarkArea
+          },
+          {
+            name: "首单支付率",
+            type: "line",
+            yAxisIndex: 1,
+            data: firstOrderPayRate,
+            smooth: true,
+            symbol: "circle",
+            symbolSize: 6,
+            lineStyle: { width: 3, color: "#344054" },
+            itemStyle: { color: "#344054" }
+          }
+        ]
+      });
+      window.addEventListener("resize", () => chart.resize());
+    }
+
+    function renderRetentionChart() {
+      const chart = echarts.init(document.getElementById("retentionChart"));
+      chart.setOption({
+        color: [theme.blue],
+        tooltip: {
+          trigger: "axis",
+          ...tooltipStyle,
+          formatter: (params) => `<b>${params[0].axisValue}</b><br/>D1留存率：${pct(params[0].value)}`
+        },
+        grid: { left: 52, right: 24, top: 36, bottom: 36 },
+        xAxis: {
+          type: "category",
+          data: dates,
+          axisTick: { show: false },
+          axisLabel: { color: theme.axis, interval: 2 },
+          axisLine: { lineStyle: { color: "#DDE3EE" } }
+        },
+        yAxis: {
+          type: "value",
+          min: 0.08,
+          max: 0.21,
+          axisLabel: { color: theme.axis, formatter: (v) => pct(v, 0) },
+          splitLine: { lineStyle: { color: theme.grid } }
+        },
+        series: [
+          {
+            name: "D1留存率",
+            type: "line",
+            data: d1RetentionRate,
+            smooth: true,
+            symbol: "circle",
+            symbolSize: 6,
+            lineStyle: { width: 3 },
+            itemStyle: { color: theme.blue },
+            areaStyle: { color: "rgba(22,93,255,0.08)" },
+            markArea: anomalyMarkArea
+          }
+        ]
+      });
+      window.addEventListener("resize", () => chart.resize());
+    }
+
+    function renderFunnelChart() {
+      const chart = echarts.init(document.getElementById("funnelChart"));
+      const maxValue = funnelData[0].value;
+      chart.setOption({
+        color: ["#165DFF", "#3678FF", "#5A94FF", "#85B4FF", "#B7D2FF"],
+        tooltip: {
+          trigger: "item",
+          ...tooltipStyle,
+          formatter: (params) => {
+            const current = funnelData[params.dataIndex];
+            const prev = funnelData[params.dataIndex - 1];
+            const rate = prev ? current.value / prev.value : 1;
+            const label = prev ? `${prev.name} → ${current.name}转化率` : "漏斗起点";
+            return `<b>${current.name}</b><br/>绝对数量：${current.value.toLocaleString("zh-CN")}<br/>${label}：${pct(rate)}`;
+          }
+        },
+        series: [
+          {
+            type: "funnel",
+            orient: "vertical",
+            left: "8%",
+            top: 12,
+            bottom: 10,
+            width: "84%",
+            min: 0,
+            max: maxValue,
+            sort: "none",
+            gap: 4,
+            label: {
+              show: true,
+              position: "inside",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 600,
+              formatter: (params) => `${params.name}  ${params.value.toLocaleString("zh-CN")}`
+            },
+            labelLine: { show: false },
+            itemStyle: {
+              borderColor: "#fff",
+              borderWidth: 2,
+              shadowBlur: 10,
+              shadowColor: "rgba(22,93,255,0.12)"
+            },
+            data: funnelData
+          }
+        ]
+      });
+      window.addEventListener("resize", () => chart.resize());
+    }
+
+    function renderChannelChart() {
+      const chart = echarts.init(document.getElementById("channelChart"));
+      const minMax = 0.09;
+      const negativeData = channelChange.map((d) => d.value < 0 ? d.value : null);
+      const positiveData = channelChange.map((d) => d.value > 0 ? d.value : null);
+
+      chart.setOption({
+        grid: { left: 118, right: 76, top: 28, bottom: 36 },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+          ...tooltipStyle,
+          formatter: (params) => {
+            const valid = params.find((p) => p.value !== null && p.value !== undefined);
+            const value = valid.value;
+            return `<b>${valid.name}</b><br/>异常期较正常期变化：<span style="color:${value < 0 ? theme.red : theme.blue};font-weight:700">${pct(value)}</span>`;
+          }
+        },
+        xAxis: {
+          type: "value",
+          min: -minMax,
+          max: minMax,
+          axisLabel: { color: theme.axis, formatter: (v) => pct(v, 0) },
+          splitLine: { show: false },
+          axisLine: { lineStyle: { color: "#DDE3EE" } }
+        },
+        yAxis: {
+          type: "category",
+          data: channelChange.map((d) => d.channel),
+          axisTick: { show: false },
+          axisLine: { show: false },
+          axisLabel: { color: theme.text, fontSize: 13 }
+        },
+        series: [
+          {
+            name: "负向变化",
+            type: "bar",
+            stack: "delta",
+            barWidth: 22,
+            data: negativeData,
+            itemStyle: {
+              color: theme.red,
+              borderRadius: [7, 0, 0, 7]
+            },
+            label: {
+              show: true,
+              position: "left",
+              distance: 10,
+              color: theme.text,
+              fontWeight: 700,
+              formatter: (params) => params.value === null ? "" : pct(params.value)
+            }
+          },
+          {
+            name: "正向变化",
+            type: "bar",
+            stack: "delta",
+            barWidth: 22,
+            data: positiveData,
+            itemStyle: {
+              color: theme.blue,
+              borderRadius: [0, 7, 7, 0]
+            },
+            label: {
+              show: true,
+              position: "right",
+              distance: 10,
+              color: theme.text,
+              fontWeight: 700,
+              formatter: (params) => params.value === null ? "" : pct(params.value)
+            }
+          },
+          {
+            name: "零刻度",
+            type: "line",
+            data: channelChange.map(() => 0),
+            symbol: "none",
+            lineStyle: { color: "#C9CDD4", type: "dashed", width: 1 },
+            tooltip: { show: false }
+          }
+        ]
+      });
+      window.addEventListener("resize", () => chart.resize());
+    }
+
+    renderKpis();
+    renderNewUserPayChart();
+    renderRetentionChart();
+    renderFunnelChart();
+    renderChannelChart();
+  </script>
+</body>
+</html>

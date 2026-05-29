@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SwiftCart 实验验证与行动建议</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f3f6f9;
+      --nav: #0b2a55;
+      --card: #ffffff;
+      --text-main: #1d2129;
+      --text-sub: #4e5969;
+      --blue: #165dff;
+      --red: #f53f3f;
+      --green: #00b42a;
+      --grid: #edf1f7;
+      --orange: #ff7d00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 184px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #08234a 0%, #0b2a55 100%);
+      color: #eaf2ff;
+      padding: 22px 14px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 10px;
+      color: rgba(234, 242, 255, 0.86);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: #ff6a3d;
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(255, 106, 61, 0.22);
+    }
+
+    .content {
+      min-width: 0;
+      padding: 22px 28px 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(31, 45, 61, 0.06);
+    }
+
+    .chart {
+      width: 100%;
+      height: 338px;
+    }
+
+    .finding-box {
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      padding: 12px 14px;
+      color: #165dff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.6;
+      display: flex;
+      gap: 10px;
+    }
+
+    @media (max-width: 1180px) {
+      .app-shell { grid-template-columns: 76px minmax(0, 1fr); }
+      .brand-text, .nav-label { display: none; }
+      .nav-item { justify-content: center; padding: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell { display: block; }
+      .sidebar { display: none; }
+      .content { padding: 16px; }
+      .chart { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="mb-8 flex items-center gap-3 px-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff6a3d] text-white shadow-lg shadow-orange-900/20">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="brand-text">
+          <div class="text-lg font-semibold leading-tight text-white">SwiftCart</div>
+          <div class="text-xs text-blue-100/70">Growth BI</div>
+        </div>
+      </div>
+
+      <nav class="space-y-2">
+        <a class="nav-item" href="index.html"><i class="fa-solid fa-house"></i><span class="nav-label">Overview</span></a>
+        <a class="nav-item" href="channel.html"><i class="fa-solid fa-chart-pie"></i><span class="nav-label">渠道诊断</span></a>
+        <a class="nav-item" href="funnel.html"><i class="fa-solid fa-filter"></i><span class="nav-label">漏斗分析</span></a>
+        <a class="nav-item" href="supply.html"><i class="fa-solid fa-box-open"></i><span class="nav-label">供给证据</span></a>
+        <a class="nav-item active" href="experiment_action.html"><i class="fa-solid fa-flask"></i><span class="nav-label">实验&行动</span></a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight text-[#1D2129]">SwiftCart 实验验证与行动建议</h1>
+          <p class="mt-1 text-sm text-[#4E5969]">候选策略 -> 城市分层 -> 显著性验证 -> 上线动作</p>
+          <div class="mt-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold leading-6 text-[#00B42A] shadow-sm">
+            ✅ 验证目标：在缺货场景下测试“智能替代品推荐 + 补偿券”是否能挽回支付转化。实验显示 Treatment 组首单支付率较 Control 组绝对提升 +15.43%，方向显著为正。
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="card flex items-center gap-2 px-4 py-2 text-sm text-[#4E5969]">
+            <i class="fa-regular fa-calendar text-[#165DFF]"></i>
+            <span>2026/04/01-04/30</span>
+          </div>
+          <div class="card flex items-center gap-2 bg-blue-50 px-4 py-2 text-sm">
+            <i class="fa-solid fa-flask text-[#165DFF]"></i>
+            <span class="font-semibold text-[#165DFF]">Two-Proportion Z-Test</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="kpiGrid" class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"></section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1.2fr]">
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">实验组 vs 对照组首单支付率</h2>
+          <div id="abRateChart" class="chart"></div>
+          <div class="finding-box mt-3">
+            <span>💡</span>
+            <span>关键发现：Treatment 组转化率 29.71%，Control 组 14.27%，绝对提升 +15.43%；方案对缺货后的支付挽回有明确正向信号。</span>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-3 text-base font-semibold text-[#1D2129]">城市首单支付率绝对提升</h2>
+          <div id="cityLiftChart" class="chart"></div>
+          <div class="finding-box mt-3">
+            <span>💡</span>
+            <span>关键发现：北京、杭州等前序高风险城市也呈正向提升，说明替代品推荐与补偿券具备对核心异常城市的修复潜力。</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1fr_1fr]">
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">行动优先级矩阵</h2>
+          <div class="grid h-[310px] grid-cols-2 grid-rows-2 gap-3 text-sm font-semibold">
+            <div class="rounded-xl bg-red-50 p-4 text-[#F53F3F]">
+              <div class="mb-2 text-xs text-[#86909C]">高影响 / 高可行</div>
+              <div class="text-lg">1. Top20安全库存</div>
+              <p class="mt-2 text-xs font-medium leading-5 text-[#4E5969]">北京/杭州优先补货，设库存预警阈值。</p>
+            </div>
+            <div class="rounded-xl bg-orange-50 p-4 text-[#FF7D00]">
+              <div class="mb-2 text-xs text-[#86909C]">高影响 / 中可行</div>
+              <div class="text-lg">2. 替代品推荐</div>
+              <p class="mt-2 text-xs font-medium leading-5 text-[#4E5969]">结算页缺货时自动召回同类可售 SKU。</p>
+            </div>
+            <div class="rounded-xl bg-blue-50 p-4 text-[#165DFF]">
+              <div class="mb-2 text-xs text-[#86909C]">中影响 / 高可行</div>
+              <div class="text-lg">3. 渠道承接页提示</div>
+              <p class="mt-2 text-xs font-medium leading-5 text-[#4E5969]">信息流渠道A曝光页增加库存与替代提示。</p>
+            </div>
+            <div class="rounded-xl bg-green-50 p-4 text-[#00B42A]">
+              <div class="mb-2 text-xs text-[#86909C]">中影响 / 中可行</div>
+              <div class="text-lg">4. 补偿券策略</div>
+              <p class="mt-2 text-xs font-medium leading-5 text-[#4E5969]">仅对缺货阻断用户发券，控制成本。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">1-4周落地路线</h2>
+          <div class="space-y-4">
+            <div class="flex gap-3 rounded-xl bg-[#f7f9fc] p-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#165DFF] font-bold text-white">1</span>
+              <div><b>Week 1</b><p class="mt-1 text-sm text-[#4E5969]">上线北京/杭州 Top20 库存预警，人工补货兜底。</p></div>
+            </div>
+            <div class="flex gap-3 rounded-xl bg-[#f7f9fc] p-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#165DFF] font-bold text-white">2</span>
+              <div><b>Week 2</b><p class="mt-1 text-sm text-[#4E5969]">灰度替代品推荐，覆盖信息流渠道A高风险流量。</p></div>
+            </div>
+            <div class="flex gap-3 rounded-xl bg-[#f7f9fc] p-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#165DFF] font-bold text-white">3</span>
+              <div><b>Week 3-4</b><p class="mt-1 text-sm text-[#4E5969]">叠加补偿券策略，监控支付率、D1留存与券成本。</p></div>
+            </div>
+            <div class="flex gap-3 rounded-xl bg-[#f7f9fc] p-4">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#165DFF] font-bold text-white">4</span>
+              <div><b>Month 2</b><p class="mt-1 text-sm text-[#4E5969]">扩大城市样本，复验供给策略是否稳定有效。</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">汇报口径摘要</h2>
+          <ul class="space-y-3 text-sm leading-6 text-[#4E5969]">
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>大盘问题不是流量断崖，而是异常期支付和留存质量下探。</span></li>
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>渠道诊断锁定信息流渠道A是后段支付率下降的主要贡献渠道。</span></li>
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#165DFF]"></span><span>供给证据显示北京/杭州 Top20 商品缺货与客诉反馈同步抬升。</span></li>
+            <li class="flex gap-2"><span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#00B42A]"></span><span>AB实验显示组合策略有显著正向效果，建议灰度上线而非一次性全量。</span></li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_1fr]">
+        <article class="card p-5">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-[#1D2129]">城市实验样本与转化明细</h2>
+            <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-[#00B42A]">全部城市均为正向提升</span>
+          </div>
+          <div class="overflow-hidden rounded-xl border border-[#edf1f7]">
+            <table class="w-full border-collapse text-sm">
+              <thead class="bg-[#f7f9fc] text-left text-[#4E5969]">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">城市</th>
+                  <th class="px-4 py-3 font-semibold">Control转化率</th>
+                  <th class="px-4 py-3 font-semibold">Treatment转化率</th>
+                  <th class="px-4 py-3 font-semibold">绝对提升</th>
+                  <th class="px-4 py-3 font-semibold">样本量</th>
+                </tr>
+              </thead>
+              <tbody id="cityRows" class="divide-y divide-[#edf1f7]"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="mb-4 text-base font-semibold text-[#1D2129]">不建议直接写的结论</h2>
+          <div class="space-y-3 text-sm text-[#4E5969]">
+            <div class="rounded-xl bg-red-50 p-4 text-[#F53F3F]"><b>不要写：</b>库存是唯一根因。</div>
+            <div class="rounded-xl bg-red-50 p-4 text-[#F53F3F]"><b>不要写：</b>实验策略可以直接全量上线。</div>
+            <div class="rounded-xl bg-red-50 p-4 text-[#F53F3F]"><b>不要写：</b>所有渠道都需要同样预算调整。</div>
+            <div class="rounded-xl bg-blue-50 p-4 text-[#165DFF]"><b>建议写：</b>当前证据支持“供给短缺是最完整候选解释”，策略需灰度推进并持续监控。</div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const BLUE = '#165DFF';
+    const RED = '#F53F3F';
+    const GREEN = '#00B42A';
+    const GREY = '#86909C';
+
+    const abOverall = {
+      controlUsers: 4988,
+      controlPaid: 712,
+      controlRate: 0.1427425822,
+      treatmentUsers: 5012,
+      treatmentPaid: 1489,
+      treatmentRate: 0.2970869912,
+      absLift: 0.1543444090,
+      zStatistic: 18.6265,
+      pValueText: '< 0.001'
+    };
+
+    const cityLift = [
+      { city: '北京', control: 0.1134, treatment: 0.3065, lift: 0.1931, controlUsers: 573, treatmentUsers: 620 },
+      { city: '广州', control: 0.1166, treatment: 0.2978, lift: 0.1812, controlUsers: 626, treatmentUsers: 648 },
+      { city: '武汉', control: 0.1545, treatment: 0.3196, lift: 0.1651, controlUsers: 615, treatmentUsers: 629 },
+      { city: '深圳', control: 0.1594, treatment: 0.3231, lift: 0.1637, controlUsers: 665, treatmentUsers: 653 },
+      { city: '杭州', control: 0.1318, treatment: 0.2949, lift: 0.1631, controlUsers: 622, treatmentUsers: 641 },
+      { city: '上海', control: 0.1537, treatment: 0.2807, lift: 0.1270, controlUsers: 644, treatmentUsers: 595 },
+      { city: '成都', control: 0.1498, treatment: 0.2746, lift: 0.1248, controlUsers: 634, treatmentUsers: 619 },
+      { city: '南京', control: 0.1593, treatment: 0.2768, lift: 0.1175, controlUsers: 609, treatmentUsers: 607 }
+    ];
+
+    const pct = (v, digits = 2) => `${(v * 100).toFixed(digits)}%`;
+    const signedPct = (v) => `${v >= 0 ? '+' : ''}${pct(v)}`;
+    const fmt = (n) => Math.round(n).toLocaleString('zh-CN');
+
+    const kpis = [
+      { title: '实验组用户', value: fmt(abOverall.treatmentUsers), sub: `支付 ${fmt(abOverall.treatmentPaid)} 人`, color: BLUE },
+      { title: '对照组用户', value: fmt(abOverall.controlUsers), sub: `支付 ${fmt(abOverall.controlPaid)} 人`, color: GREY },
+      { title: 'Control转化率', value: pct(abOverall.controlRate), sub: '原策略', color: GREY },
+      { title: 'Treatment转化率', value: pct(abOverall.treatmentRate), sub: '替代品推荐 + 补偿券', color: GREEN },
+      { title: '首单绝对提升', value: signedPct(abOverall.absLift), sub: `Z=${abOverall.zStatistic.toFixed(2)}，P ${abOverall.pValueText}`, color: GREEN }
+    ];
+
+    document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+      <article class="card px-5 py-4">
+        <div class="text-sm font-medium text-[#4E5969]">${k.title}</div>
+        <div class="mt-2 text-3xl font-bold tracking-tight" style="color:${k.color}">${k.value}</div>
+        <div class="mt-2 rounded-md bg-[#f7f9fc] px-3 py-1 text-xs font-semibold text-[#4E5969]">${k.sub}</div>
+      </article>
+    `).join('');
+
+    const charts = [];
+    const makeChart = (id) => {
+      const chart = echarts.init(document.getElementById(id));
+      charts.push(chart);
+      return chart;
+    };
+
+    makeChart('abRateChart').setOption({
+      tooltip: { trigger: 'axis', valueFormatter: v => pct(v) },
+      grid: { left: 36, right: 30, top: 36, bottom: 28, containLabel: true },
+      xAxis: { type: 'category', data: ['Control', 'Treatment'], axisTick: { show: false }, axisLine: { lineStyle: { color: '#E5E6EB' } } },
+      yAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { lineStyle: { color: '#EDF1F7' } } },
+      series: [{
+        type: 'bar',
+        barWidth: 44,
+        data: [
+          { value: abOverall.controlRate, itemStyle: { color: GREY } },
+          { value: abOverall.treatmentRate, itemStyle: { color: GREEN } }
+        ],
+        label: { show: true, position: 'top', formatter: p => pct(p.value), fontWeight: 700 },
+        itemStyle: { borderRadius: [8, 8, 0, 0] },
+        markLine: {
+          symbol: 'none',
+          lineStyle: { color: '#C9CDD4', type: 'dashed' },
+          data: [{ yAxis: abOverall.controlRate, label: { formatter: 'Control基线' } }]
+        }
+      }]
+    });
+
+    makeChart('cityLiftChart').setOption({
+      tooltip: { trigger: 'axis', valueFormatter: v => pct(v) },
+      grid: { left: 74, right: 72, top: 24, bottom: 24, containLabel: true },
+      xAxis: { type: 'value', axisLabel: { formatter: v => `${Math.round(v * 100)}%` }, splitLine: { show: false } },
+      yAxis: {
+        type: 'category',
+        data: cityLift.map(d => d.city).reverse(),
+        axisTick: { show: false },
+        axisLine: { show: false }
+      },
+      series: [{
+        name: '绝对提升',
+        type: 'bar',
+        barWidth: 16,
+        data: cityLift.map(d => ({
+          value: d.lift,
+          itemStyle: { color: ['北京', '杭州'].includes(d.city) ? GREEN : BLUE }
+        })).reverse(),
+        label: { show: true, position: 'right', formatter: p => signedPct(p.value), color: '#4E5969', fontWeight: 700 },
+        itemStyle: { borderRadius: [0, 8, 8, 0] }
+      }]
+    });
+
+    document.getElementById('cityRows').innerHTML = cityLift.map(d => `
+      <tr>
+        <td class="px-4 py-3 font-semibold text-[#1D2129]">${d.city}</td>
+        <td class="px-4 py-3">${pct(d.control)}</td>
+        <td class="px-4 py-3">${pct(d.treatment)}</td>
+        <td class="px-4 py-3 font-semibold text-[#00B42A]">${signedPct(d.lift)}</td>
+        <td class="px-4 py-3">${fmt(d.controlUsers + d.treatmentUsers)}</td>
+      </tr>
+    `).join('');
+
+    window.addEventListener('resize', () => charts.forEach(chart => chart.resize()));
+  </script>
+</body>
+</html>
