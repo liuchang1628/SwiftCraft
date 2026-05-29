@@ -49,13 +49,13 @@
 
 ## 看板预览
 
-| 页面 | PNG 预览 | PDF 导出 |
-| --- | --- | --- |
-| 增长总览 | `images/dashboard/01_overview.png` | `exports/pdf/01_overview.pdf` |
-| 渠道诊断 | `images/dashboard/02_channel.png` | `exports/pdf/02_channel.pdf` |
-| 漏斗下钻 | `images/dashboard/03_funnel.png` | `exports/pdf/03_funnel.pdf` |
-| 供给证据链 | `images/dashboard/04_inventory.png` | `exports/pdf/04_inventory.pdf` |
-| 实验与行动 | `images/dashboard/05_experiment_action.png` | `exports/pdf/05_experiment_action.pdf` |
+| 页面 | PNG 预览 | 
+| --- | --- | 
+| 增长总览 | `images/dashboard/01_overview.png` |
+| 渠道诊断 | `images/dashboard/02_channel.png` |
+| 漏斗下钻 | `images/dashboard/03_funnel.png` |
+| 供给证据链 | `images/dashboard/04_inventory.png` |
+| 实验与行动 | `images/dashboard/05_experiment_action.png` |
 
 ## 目录结构
 
