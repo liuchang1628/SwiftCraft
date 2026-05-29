@@ -74,12 +74,8 @@
 │   └── html/
 ├── images/
 │   └── dashboard/
-├── exports/
-│   └── pdf/
 ├── scripts/
 │   └── render_static_dashboard_exports.py
-└── skills/
-    └── swiftcart-bi-project/
 ```
 
 ## 技术栈
